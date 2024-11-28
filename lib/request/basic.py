@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Copyright (c) 2006-2022 sqlmap developers (https://sqlmap.org/)
+Copyright (c) 2006-2024 sqlmap developers (https://sqlmap.org/)
 See the file 'LICENSE' for copying permission
 """
 
@@ -108,7 +108,7 @@ def forgeHeaders(items=None, base=None):
     if conf.cj:
         if HTTP_HEADER.COOKIE in headers:
             for cookie in conf.cj:
-                if cookie.domain_specified and not (conf.hostname or "").endswith(cookie.domain):
+                if cookie is None or cookie.domain_specified and not (conf.hostname or "").endswith(cookie.domain):
                     continue
 
                 if ("%s=" % getUnicode(cookie.name)) in getUnicode(headers[HTTP_HEADER.COOKIE]):
@@ -282,15 +282,8 @@ def decodePage(page, contentEncoding, contentType, percentDecode=True):
     if not page or (conf.nullConnection and len(page) < 2):
         return getUnicode(page)
 
-    if hasattr(contentEncoding, "lower"):
-        contentEncoding = contentEncoding.lower()
-    else:
-        contentEncoding = ""
-
-    if hasattr(contentType, "lower"):
-        contentType = contentType.lower()
-    else:
-        contentType = ""
+    contentEncoding = contentEncoding.lower() if hasattr(contentEncoding, "lower") else ""
+    contentType = contentType.lower() if hasattr(contentType, "lower") else ""
 
     if contentEncoding in ("gzip", "x-gzip", "deflate"):
         if not kb.pageCompress:
@@ -382,7 +375,6 @@ def decodePage(page, contentEncoding, contentType, percentDecode=True):
 
 def processResponse(page, responseHeaders, code=None, status=None):
     kb.processResponseCounter += 1
-
     page = page or ""
 
     parseResponse(page, responseHeaders if kb.processResponseCounter < PARSE_HEADERS_LIMIT else None, status)
